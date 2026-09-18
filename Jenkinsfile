@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_CREDENTIALS_ID = 'dockerhub-access-token'
+        DOCKER_IMAGE = 'goguma1/calculator-gradle'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -17,6 +22,24 @@ pipeline {
         stage('Build') {
             steps {
                 sh './gradlew clean build'
+                sh 'cp $(ls build/libs/*.jar | grep -v plain) app.jar'
+            }
+        }
+
+        stage('Image Build') {
+            steps {
+                sh "docker build -t ${DOCKER_IMAGE}:latest ."
+            }
+        }
+
+        stage('Docker Login & Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: env.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+                        docker push ${DOCKER_IMAGE}:latest
+                    '''
+                }
             }
         }
 
@@ -24,8 +47,8 @@ pipeline {
             steps {
                 sshagent(credentials: ['ec2-ssh-key']) {
                     sh '''
-                        scp -o StrictHostKeyChecking=no build/libs/*.jar ubuntu@43.200.176.52:~/deploy/
-                        ssh -o StrictHostKeyChecking=no ubuntu@43.200.176.52 'cd ~/deploy && ./start_server.sh'
+                        scp -o StrictHostKeyChecking=no script.sh ubuntu@43.200.176.52:~/deploy/start-server.sh
+                        ssh -o StrictHostKeyChecking=no ubuntu@43.200.176.52 'chmod +x ~/deploy/start-server.sh && ~/deploy/start-server.sh'
                     '''
                 }
             }
