@@ -19,12 +19,25 @@ pipeline {
             }
         }
 
+         stage('Compile') {
+            steps {
+                sh './gradlew compileJava'
+            }
+        }
+
+        stage('Unit Test') {
+            steps {
+                sh './gradlew test'
+            }
+        }
+
         stage('Build') {
             steps {
-                sh './gradlew clean build'
+                sh './gradlew build -x test'
                 sh 'cp $(ls build/libs/*.jar | grep -v plain) app.jar'
             }
         }
+
 
         stage('Image Build') {
             steps {
