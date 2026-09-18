@@ -31,6 +31,21 @@ pipeline {
             }
         }
 
+        stage('Code Coverage') {
+            steps {
+                sh './gradlew jacocoTestCoverageVerification'
+                sh './gradlew jacocoTestReport'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQubeServer') {
+                    sh './gradlew sonar'
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 sh './gradlew build -x test'
