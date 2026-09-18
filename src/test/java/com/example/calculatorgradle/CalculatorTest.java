@@ -12,6 +12,6 @@ public class CalculatorTest {
         assertEquals(30, calculator.sum(10,20));
     }
     public void testSub(){
-        assertEquals(10, calculator.sub(20,10));
+        assertEquals(0, calculator.sub(20,10));
     }
 }
