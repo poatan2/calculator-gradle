@@ -47,7 +47,7 @@ pipeline {
             steps {
                 sshagent(credentials: ['ec2-ssh-key']) {
                     sh '''
-                        scp -o StrictHostKeyChecking=no script.sh ubuntu@43.200.176.52:~/deploy/start-server.sh
+                        scp -o StrictHostKeyChecking=no start_server.sh ubuntu@43.200.176.52:~/deploy/start-server.sh
                         ssh -o StrictHostKeyChecking=no ubuntu@43.200.176.52 'chmod +x ~/deploy/start-server.sh && ~/deploy/start-server.sh'
                     '''
                 }
